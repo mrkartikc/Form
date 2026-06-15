@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+<title>Operation: Adventure 🏀</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fff6fb;
+    --bg2:#f3e9ff;
+    --pink:#ff4fa8;
+    --pink-dark:#e0398f;
+    --purple:#8b5cf6;
+    --yellow:#ffd60a;
+    --deep:#2b1b4e;
+    --mint:#34d399;
+    --card:#ffffff;
+    --shadow: 0 10px 30px rgba(139,92,246,0.18);
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{
+    margin:0; padding:0;
+    min-height:100%;
+    font-family:'Quicksand', sans-serif;
+    color:var(--deep);
+    background: linear-gradient(160deg, var(--bg) 0%, var(--bg2) 60%, #ffe9f4 100%);
+    overscroll-behavior:none;
+  }
+
+  h1,h2,h3,.display{
+    font-family:'Baloo 2', cursive;
+  }
+
+  .app{
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+  }
+
+  /* SCOREBOARD HEADER */
+  .scoreboard{
+    background: linear-gradient(120deg, var(--deep) 0%, #4a2e8a 100%);
+    color:#fff;
+    padding:14px 16px 12px;
+    position:sticky;
+    top:0;
+    z-index:50;
+    box-shadow:0 4px 16px rgba(43,27,78,0.25);
+    border-bottom-left-radius:18px;
+    border-bottom-right-radius:18px;
+  }
+  .scoreboard-title{
+    font-family:'Baloo 2', cursive;
+    font-weight:800;
+    font-size:clamp(1rem, 4.5vw, 1.25rem);
+    text-align:center;
+    letter-spacing:0.5px;
+    margin-bottom:10px;
+  }
+  .quarters{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+  }
+  .q{
+    flex:1;
+    max-width:90px;
+    text-align:center;
+    font-family:'Baloo 2', cursive;
+    font-weight:700;
+    font-size:0.85rem;
+    padding:6px 4px;
+    border-radius:10px;
+    background:rgba(255,255,255,0.08);
+    border:2px solid rgba(255,255,255,0.15);
+    color:rgba(255,255,255,0.6);
+    transition:all .35s ease;
+    position:relative;
+  }
+  .q .ball{
+    display:block;
+    font-size:1rem;
+    margin-bottom:2px;
+    opacity:0;
+    transform:translateY(-4px);
+    transition:all .35s ease;
+  }
+  .q.active{
+    background: linear-gradient(120deg, var(--pink), var(--purple));
+    color:#fff;
+    border-color:transparent;
+    transform:scale(1.06);
+    box-shadow:0 4px 14px rgba(255,79,168,0.45);
+  }
+  .q.active .ball{ opacity:1; transform:translateY(0); }
+  .q.done{
+    color:var(--mint);
+    border-color:rgba(52,211,153,0.4);
+  }
+
+  /* STAGE */
+  .stage{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px 16px 40px;
+  }
+
+  .screen{
+    display:none;
+    width:100%;
+    animation: fadeUp .5s ease;
+  }
+  .screen.active{ display:block; }
+
+  @keyframes fadeUp{
+    from{ opacity:0; transform:translateY(16px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  .card{
+    background:var(--card);
+    border-radius:22px;
+    padding:26px 22px;
+    box-shadow:var(--shadow);
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
+  .card::before{
+    content:'';
+    position:absolute;
+    top:-40px; right:-40px;
+    width:120px; height:120px;
+    background:radial-gradient(circle, rgba(255,214,10,0.35), transparent 70%);
+    border-radius:50%;
+  }
+
+  .eyebrow{
+    display:inline-block;
+    font-family:'Baloo 2', cursive;
+    font-weight:700;
+    font-size:0.75rem;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--pink-dark);
+    background:rgba(255,79,168,0.1);
+    padding:5px 14px;
+    border-radius:999px;
+    margin-bottom:14px;
+  }
+
+  h2.title{
+    font-size:clamp(1.4rem, 6vw, 1.9rem);
+    margin:4px 0 10px;
+    font-weight:800;
+    color:var(--deep);
+  }
+
+  p.body-text{
+    font-size:0.98rem;
+    line-height:1.55;
+    color:#4b3a6e;
+    margin:0 0 18px;
+  }
+
+  .emoji-row{
+    font-size:1.8rem;
+    margin-bottom:6px;
+    letter-spacing:6px;
+  }
+
+  /* BUTTONS */
+  .btn{
+    font-family:'Baloo 2', cursive;
+    font-weight:700;
+    font-size:1rem;
+    border:none;
+    border-radius:14px;
+    padding:14px 28px;
+    cursor:pointer;
+    transition: transform .15s ease, box-shadow .15s ease, background .2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-primary{
+    background: linear-gradient(120deg, var(--mint), #22c55e);
+    color:#fff;
+    box-shadow:0 8px 18px rgba(52,211,153,0.4);
+  }
+  .btn-primary:active{ transform:scale(0.97); }
+
+  .btn-secondary{
+    background:#fff;
+    color:#b03a7a;
+    border:2px solid #ffd0e7;
+    box-shadow:0 4px 10px rgba(255,79,168,0.15);
+  }
+
+  .btn-next{
+    background: linear-gradient(120deg, var(--pink), var(--purple));
+    color:#fff;
+    box-shadow:0 8px 18px rgba(139,92,246,0.35);
+    width:100%;
+    margin-top:18px;
+    padding:15px 28px;
+    font-size:1.05rem;
+  }
+  .btn-next:active{ transform:scale(0.98); }
+  .btn-next:disabled{
+    opacity:0.5;
+    cursor:not-allowed;
+  }
+
+  /* Q1 specific */
+  .choice-area{
+    position:relative;
+    min-height:170px;
+    margin-top:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:16px;
+  }
+  #yesBtn{
+    font-size:1.05rem;
+    padding:16px 34px;
+  }
+  #noBtn{
+    position:relative;
+    z-index:5;
+  }
+  .hint{
+    font-size:0.8rem;
+    color:#a98ec9;
+    margin-top:14px;
+  }
+
+  /* Q2 specific */
+  .date-wrap{
+    margin:18px 0 6px;
+  }
+  input[type="date"]{
+    font-family:'Quicksand', sans-serif;
+    font-weight:600;
+    font-size:1rem;
+    padding:13px 14px;
+    border-radius:12px;
+    border:2px solid #f0d9ec;
+    width:100%;
+    color:var(--deep);
+    background:#fff8fc;
+  }
+  input[type="date"]:focus{
+    outline:2px solid var(--purple);
+    border-color:transparent;
+  }
+  .note{
+    font-size:0.85rem;
+    color:#9b8bc4;
+    margin-top:10px;
+  }
+
+  /* Q3 specific */
+  .activities{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    margin:18px 0 4px;
+    text-align:left;
+  }
+  .activity{
+    border:2px solid #f1e2f7;
+    background:#fffbff;
+    border-radius:16px;
+    padding:14px 16px;
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    cursor:pointer;
+    transition: all .2s ease;
+  }
+  .activity:active{ transform:scale(0.99); }
+  .activity.selected{
+    border-color:var(--pink);
+    background: linear-gradient(120deg, rgba(255,79,168,0.08), rgba(139,92,246,0.08));
+    box-shadow:0 4px 14px rgba(255,79,168,0.18);
+  }
+  .activity .icon{
+    font-size:1.6rem;
+    line-height:1;
+    flex-shrink:0;
+  }
+  .activity .text{
+    font-size:0.92rem;
+    line-height:1.4;
+    color:#3f2f63;
+    font-weight:600;
+  }
+  .activity .check{
+    margin-left:auto;
+    font-size:1.1rem;
+    color:var(--pink);
+    opacity:0;
+    transition:opacity .2s ease;
+    flex-shrink:0;
+  }
+  .activity.selected .check{ opacity:1; }
+
+  /* Q4 specific - the pitch */
+  .slide{
+    text-align:left;
+  }
+  .slide-tag{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:0.7rem;
+    letter-spacing:1px;
+    color:#b39bd9;
+    text-transform:uppercase;
+    margin-bottom:10px;
+    font-weight:700;
+  }
+  .slide-title{
+    font-size:clamp(1.1rem, 5vw, 1.4rem);
+    font-weight:800;
+    margin:0 0 4px;
+    color:var(--deep);
+  }
+  .slide-sub{
+    font-size:0.8rem;
+    color:#9b8bc4;
+    margin-bottom:16px;
+  }
+  .slide ul{
+    list-style:none;
+    padding:0;
+    margin:0 0 18px;
+  }
+  .slide li{
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    font-size:0.88rem;
+    line-height:1.5;
+    color:#4b3a6e;
+    margin-bottom:12px;
+  }
+  .slide li .bullet{
+    flex-shrink:0;
+    font-size:1.1rem;
+  }
+  .slide li b{
+    color:var(--deep);
+  }
+  .verdict{
+    text-align:center;
+    font-family:'Baloo 2', cursive;
+    font-weight:800;
+    font-size:1.05rem;
+    background: linear-gradient(120deg, rgba(255,214,10,0.25), rgba(255,79,168,0.15));
+    border-radius:14px;
+    padding:14px;
+    margin-top:6px;
+    color:var(--pink-dark);
+  }
+
+  .consultant-greeting{
+    font-family:'Baloo 2', cursive;
+    font-weight:800;
+    font-size:clamp(1.2rem, 5.5vw, 1.5rem);
+    text-align:center;
+    color:var(--purple);
+    margin:0 0 14px;
+  }
+
+  .illustration{
+    width:100%;
+    border-radius:16px;
+    overflow:hidden;
+    margin:18px 0 16px;
+    box-shadow:0 6px 18px rgba(139,92,246,0.18);
+    display:block;
+  }
+  .illustration svg{
+    display:block;
+    width:100%;
+    height:auto;
+  }
+
+  .summary-box{
+    text-align:center;
+    background: linear-gradient(120deg, rgba(52,211,153,0.18), rgba(139,92,246,0.12));
+    border:2px dashed rgba(139,92,246,0.35);
+    border-radius:14px;
+    padding:14px 16px;
+    margin-top:6px;
+  }
+  .summary-box .summary-label{
+    font-family:'Baloo 2', cursive;
+    font-weight:700;
+    font-size:0.95rem;
+    color:var(--deep);
+    margin-bottom:4px;
+  }
+  .summary-box .summary-detail{
+    font-size:0.88rem;
+    color:#5b4a85;
+    line-height:1.5;
+  }
+
+  .screenshot-note{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:#fff8fc;
+    border:2px solid #ffe1f0;
+    border-radius:14px;
+    padding:12px 14px;
+    margin-top:14px;
+    font-size:0.85rem;
+    color:#9b6fa3;
+    line-height:1.4;
+  }
+  .screenshot-note .icon{
+    font-size:1.4rem;
+    flex-shrink:0;
+  }
+
+  /* CONFETTI */
+  .confetti-container{
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    pointer-events:none;
+    overflow:hidden;
+    z-index:200;
+  }
+  .confetti-piece{
+    position:absolute;
+    top:-10%;
+    font-size:1.4rem;
+    animation: fall linear forwards;
+  }
+  @keyframes fall{
+    to{
+      transform: translateY(110vh) rotate(360deg);
+      opacity:0.9;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="scoreboard">
+    <div class="scoreboard-title">🏀 OPERATION: ADVENTURE</div>
+    <div class="quarters" id="quarters">
+      <div class="q active" data-q="1"><span class="ball">🏀</span>Q1</div>
+      <div class="q" data-q="2"><span class="ball">🏀</span>Q2</div>
+      <div class="q" data-q="3"><span class="ball">🏀</span>Q3</div>
+      <div class="q" data-q="4"><span class="ball">🏀</span>Q4</div>
+    </div>
+  </header>
+
+  <main class="stage">
+
+    <!-- Q1: TIP-OFF -->
+    <section class="screen active" id="screen1">
+      <div class="card">
+        <span class="eyebrow">Q1 · Tip-Off</span>
+        <div class="emoji-row">🦉📨</div>
+        <h2 class="title">Hey Mansi!</h2>
+        <p class="body-text">
+          This is not a salary hike, not a project update, and definitely not another status call.
+          It's a proposal for <b>one random adventure</b> — no fixed agenda, no PPT (yet 👀), just good vibes.
+        </p>
+        <p class="body-text" style="margin-bottom:0;">So... are you in?</p>
+
+        <div class="choice-area" id="choiceArea">
+          <button class="btn btn-primary" id="yesBtn">Yes! 🙌</button>
+          <button class="btn btn-secondary" id="noBtn">No</button>
+        </div>
+        <div class="hint">psst, the "No" button is a bit camera-shy 🙃</div>
+      </div>
+    </section>
+
+    <!-- Q2: PICK A DATE -->
+    <section class="screen" id="screen2">
+      <div class="card">
+        <span class="eyebrow">Q2 · Setting The Date</span>
+        <div class="emoji-row">🎉📅</div>
+        <h2 class="title">Yasss, let's go!</h2>
+        <p class="body-text">
+          Step 1: cleared. Now pick a date that works for you — time will be
+          <b>mutually decided</b>, like true co-founders of this adventure.
+        </p>
+        <div class="date-wrap">
+          <input type="date" id="dateInput" />
+        </div>
+        <div class="note" id="dateNote">We'll lock the time together once the date is set 😊</div>
+        <button class="btn btn-next" id="toQ3" disabled>Lock it in →</button>
+      </div>
+    </section>
+
+    <!-- Q3: CHOOSE THE GAME PLAN -->
+    <section class="screen" id="screen3">
+      <div class="card">
+        <span class="eyebrow">Q3 · Game Plan</span>
+        <div class="emoji-row">🤔✨</div>
+        <h2 class="title">Choose Your Adventure</h2>
+        <p class="body-text">Pick whatever sounds fun — multiple selections welcome, go big!</p>
+
+        <div class="activities" id="activities">
+          <div class="activity" data-id="1">
+            <div class="icon">🥟</div>
+            <div class="text">Pani Puri Championship, followed by a sunset walk on Marine Drive</div>
+            <div class="check">✓</div>
+          </div>
+          <div class="activity" data-id="2">
+            <div class="icon">🏀</div>
+            <div class="text">Pickleball / Badminton / Basketball, followed by café hopping</div>
+            <div class="check">✓</div>
+          </div>
+          <div class="activity" data-id="3">
+            <div class="icon">🎳</div>
+            <div class="text">Bowling, followed by a fancy dinner</div>
+            <div class="check">✓</div>
+          </div>
+          <div class="activity" data-id="4">
+            <div class="icon">🛕</div>
+            <div class="text">Temple visit + dosa, then chill by the beach</div>
+            <div class="check">✓</div>
+          </div>
+        </div>
+
+        <button class="btn btn-next" id="toQ4" disabled>Submit Game Plan →</button>
+      </div>
+    </section>
+
+    <!-- Q4: THE PITCH -->
+    <section class="screen" id="screen4">
+      <div class="card slide">
+        <div class="consultant-greeting">Hey Consultant 👋</div>
+
+        <div class="illustration">
+          <svg viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Illustration of a girl sitting on a hill watching mountains and a river">
+            <defs>
+              <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#cdb6f0"/>
+                <stop offset="55%" stop-color="#ffc9d9"/>
+                <stop offset="100%" stop-color="#ffe2b8"/>
+              </linearGradient>
+              <linearGradient id="riverGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#cdeaff"/>
+                <stop offset="100%" stop-color="#9fd6f5"/>
+              </linearGradient>
+              <linearGradient id="grass" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#bfe3a6"/>
+                <stop offset="100%" stop-color="#9ed18a"/>
+              </linearGradient>
+            </defs>
+
+            <rect x="0" y="0" width="400" height="240" fill="url(#sky)"/>
+            <circle cx="320" cy="55" r="26" fill="#fff3c4" opacity="0.9"/>
+
+            <path d="M0 150 L60 95 L120 150 L170 110 L230 150 L300 90 L360 150 L400 130 L400 240 L0 240 Z" fill="#b8a4dd" opacity="0.55"/>
+            <path d="M0 175 L80 120 L150 175 L210 135 L280 178 L340 130 L400 175 L400 240 L0 240 Z" fill="#9b86c9" opacity="0.75"/>
+            <path d="M0 200 L70 160 L140 205 L220 165 L300 205 L400 170 L400 240 L0 240 Z" fill="#7c6bb0"/>
+
+            <path d="M120 240 C150 190 190 185 215 240 Z" fill="url(#riverGrad)"/>
+            <path d="M0 215 C100 195 300 235 400 205 L400 240 L0 240 Z" fill="url(#grass)"/>
+
+            <g transform="translate(150,150)">
+              <ellipse cx="40" cy="92" rx="46" ry="10" fill="#7c6bb0" opacity="0.25"/>
+              <path d="M5 92 C0 60 20 45 40 45 C60 45 80 60 75 92 Z" fill="#ff7fb0"/>
+              <circle cx="40" cy="34" r="17" fill="#ffd9b8"/>
+              <path d="M22 30 C20 14 60 14 58 30 C60 22 64 40 58 44 C60 36 56 26 50 24 C52 30 46 28 44 22 C44 28 36 28 36 24 C32 28 28 30 30 38 C24 36 22 36 22 30 Z" fill="#5b3a29"/>
+              <circle cx="56" cy="40" r="5" fill="#5b3a29"/>
+              <path d="M18 70 C10 76 8 86 14 92" fill="none" stroke="#ff7fb0" stroke-width="9" stroke-linecap="round"/>
+              <path d="M62 70 C70 76 72 86 66 92" fill="none" stroke="#ff7fb0" stroke-width="9" stroke-linecap="round"/>
+            </g>
+          </svg>
+        </div>
+
+        <div class="summary-box" id="summaryBox">
+          <div class="summary-label">📌 Mission Briefing</div>
+          <div class="summary-detail" id="summaryDetail">Pick a date and an adventure, and your final brief will show up here!</div>
+        </div>
+
+        <div class="screenshot-note">
+          <span class="icon">📸</span>
+          <span>Please send a screenshot of this page to Kartik, so I get to know what you selected!</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="confetti-container" id="confetti"></div>
+
+<script>
+  // ---------- Navigation ----------
+  const activityLabels = {
+    1: "🥟 Pani Puri Championship + Marine Drive sunset walk",
+    2: "🏀 Pickleball/Badminton/Basketball + Café hopping",
+    3: "🎳 Bowling + Fancy dinner",
+    4: "🛕 Temple visit + Dosa + Beach evening"
+  };
+
+  function buildSummary(){
+    const detailEl = document.getElementById('summaryDetail');
+    const dateVal = dateInput.value;
+    let dateText = "a date to be confirmed";
+    if(dateVal){
+      const d = new Date(dateVal + 'T00:00:00');
+      dateText = d.toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'long' });
+    }
+    const selected = Array.from(document.querySelectorAll('.activity.selected'))
+      .map(a => activityLabels[a.dataset.id]);
+
+    let plansText;
+    if(selected.length === 0){
+      plansText = "the adventure (details TBD)";
+    } else if(selected.length === 1){
+      plansText = selected[0];
+    } else {
+      plansText = selected.map(s => "• " + s).join("<br>");
+    }
+
+    if(selected.length > 1){
+      detailEl.innerHTML = `Be ready on <b>${dateText}</b> for:<br>${plansText}`;
+    } else {
+      detailEl.innerHTML = `Be ready on <b>${dateText}</b> for ${plansText}`;
+    }
+  }
+
+  function goTo(n){
+    document.querySelectorAll('.screen').forEach((s,i)=>{
+      s.classList.toggle('active', i === n-1);
+    });
+    document.querySelectorAll('.q').forEach(q=>{
+      const num = parseInt(q.dataset.q);
+      q.classList.remove('active','done');
+      if(num < n) q.classList.add('done');
+      if(num === n) q.classList.add('active');
+    });
+    if(n === 4){
+      buildSummary();
+      launchConfetti();
+    }
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  // ---------- Q1: dodging No button ----------
+  const yesBtn = document.getElementById('yesBtn');
+  const noBtn = document.getElementById('noBtn');
+  const choiceArea = document.getElementById('choiceArea');
+  const dodgeMessages = ["No","Nope","Nuh-uh","Try again","Nice try 😏","Not today","404: Declined","Still no","Yes is right there 👉"];
+  let dodgeCount = 0;
+
+  function dodge(e){
+    e.preventDefault();
+    dodgeCount++;
+    const areaRect = choiceArea.getBoundingClientRect();
+    const btnRect = noBtn.getBoundingClientRect();
+
+    if(noBtn.style.position !== 'absolute'){
+      noBtn.style.position = 'absolute';
+    }
+    const maxX = Math.max(areaRect.width - btnRect.width, 10);
+    const maxY = Math.max(areaRect.height - btnRect.height, 10);
+    const newX = Math.random() * maxX;
+    const newY = Math.random() * maxY;
+    noBtn.style.left = newX + 'px';
+    noBtn.style.top = newY + 'px';
+
+    noBtn.textContent = dodgeMessages[dodgeCount % dodgeMessages.length];
+
+    const scale = Math.min(1 + dodgeCount * 0.07, 1.7);
+    yesBtn.style.transform = `scale(${scale})`;
+  }
+  noBtn.addEventListener('click', dodge);
+  noBtn.addEventListener('touchstart', dodge, {passive:false});
+  noBtn.addEventListener('mouseenter', dodge);
+
+  yesBtn.addEventListener('click', ()=> goTo(2));
+
+  // ---------- Q2: date ----------
+  const dateInput = document.getElementById('dateInput');
+  const toQ3 = document.getElementById('toQ3');
+  const today = new Date().toISOString().split('T')[0];
+  dateInput.min = today;
+  dateInput.addEventListener('change', ()=>{
+    toQ3.disabled = !dateInput.value;
+  });
+  toQ3.addEventListener('click', ()=> goTo(3));
+
+  // ---------- Q3: activities ----------
+  const activities = document.querySelectorAll('.activity');
+  const toQ4 = document.getElementById('toQ4');
+  let selectedCount = 0;
+  activities.forEach(a=>{
+    a.addEventListener('click', ()=>{
+      a.classList.toggle('selected');
+      selectedCount = document.querySelectorAll('.activity.selected').length;
+      toQ4.disabled = selectedCount === 0;
+    });
+  });
+  toQ4.addEventListener('click', ()=> goTo(4));
+
+  // ---------- Confetti ----------
+  let confettiLaunched = false;
+  function launchConfetti(){
+    if(confettiLaunched) return;
+    confettiLaunched = true;
+    const container = document.getElementById('confetti');
+    const pieces = ['🎉','🏀','💛','✨','💖','🌟'];
+    for(let i=0; i<40; i++){
+      const span = document.createElement('span');
+      span.className = 'confetti-piece';
+      span.textContent = pieces[Math.floor(Math.random()*pieces.length)];
+      span.style.left = Math.random()*100 + 'vw';
+      span.style.animationDuration = (3 + Math.random()*2.5) + 's';
+      span.style.animationDelay = (Math.random()*0.6) + 's';
+      span.style.fontSize = (1 + Math.random()*1.2) + 'rem';
+      container.appendChild(span);
+      setTimeout(()=> span.remove(), 6000);
+    }
+  }
+</script>
+
+</body>
+</html>
